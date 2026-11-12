@@ -10,3 +10,4 @@ pandas
 pykrx
 yfinance
 google-genai
+email-validator
