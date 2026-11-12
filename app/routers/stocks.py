@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from typing_extensions import Literal
+from typing import Literal
 
 from app.core.database import get_db
 from app.schemas.stock import StockResponse

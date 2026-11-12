@@ -1,6 +1,4 @@
 # sqlalchemy는 ORM이다.
-from enum import Enum
-
 from sqlalchemy import String, Enum
 from sqlalchemy.orm import Mapped, mapped_column
 
