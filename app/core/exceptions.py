@@ -18,3 +18,7 @@ class InvalidCredentialsError(AppError):
 class UnauthorizedError(AppError):
     def __init__(self):
         super().__init__(401, "UNAUTHORIZED", "로그인이 필요합니다.")
+
+class StockNotFoundError(AppError):
+    def __init__(self):
+        super().__init__(422, "STOCK_NOT_FOUND", "등록되지 않은 종목입니다.")
