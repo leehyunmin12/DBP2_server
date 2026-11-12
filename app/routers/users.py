@@ -1,5 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+
+from app.core.deps import get_current_user
+from app.models.user import User
+from app.schemas.user import UserResponse
 
 router = APIRouter(prefix="/users", tags=["users"])
 
-# TODO: GET /me (새로고침 때 로그인 상태 확인에도 사용)
+@router.get("/me", response_model = UserResponse)
+def me(current_user: User = Depends(get_current_user)):
+    return current_user

@@ -1,11 +1,15 @@
+from fastapi import Request
+
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.responses import JSONResponse
 
 from app.core.config import settings
 from app.core.database import get_db
+from app.core.exceptions import AppError
 from app.routers import auth, reports, sample, stocks, trades, users
 
 # 모든 api에 사용할 주소
@@ -46,3 +50,12 @@ def health():
 def health_db(db: Session = Depends(get_db)):
     db.execute(text("SELECT 1"))
     return {"status": "ok", "db": "connected"}
+
+# service에서 Error를 올리면 router를 지나 여기 app_error_handler에서 잡음
+# Error 났을 때 반환 내용 정의
+@app.exception_handler(AppError)
+def app_error_handler(request: Request, exc: AppError):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error" : {"code": exc.code, "message": exc.message}},
+    )
