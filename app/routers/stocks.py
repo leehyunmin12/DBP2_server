@@ -3,12 +3,14 @@ from sqlalchemy.orm import Session
 from typing import Literal
 
 from app.core.database import get_db
+from app.core.deps import get_current_user
 from app.schemas.stock import StockResponse
 from app.services import stock as stock_service
 
 
-
-router = APIRouter(prefix="/stocks", tags=["stocks"]) # 이 파일의 모든 주소에 /stocks가 붙음
+# 이 파일의 모든 주소에 /stocks가 붙음
+# dependencies를 추가해서 모든 요청에서 쿠키를 검증
+router = APIRouter(prefix="/stocks", tags=["stocks"], dependencies=[Depends(get_current_user)])
 
 # prefix인 /stocks 뒤에 아무것도 안붙음 /stocks GET 요청 자체, schemas의 stock.py 모양으로 response를 보냄
 @router.get("", response_model=list[StockResponse])
