@@ -75,3 +75,7 @@ class TradeResponse(BaseModel):
 
 class BulkResponse(BaseModel):
     saved: int
+
+class TradeListResponse(BaseModel):
+    total: int
+    items: list[TradeResponse]
