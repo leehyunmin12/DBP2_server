@@ -26,3 +26,7 @@ class StockNotFoundError(AppError):
 class TradeNotFoundError(AppError):
     def __init__(self) -> None:
         super().__init__(404, "TRADE_NOT_FOUND", "거래를 찾을 수 없습니다.")
+
+class NoteNotFoundError(AppError):
+    def __init__(self) -> None:
+        super().__init__(404, "NOTE_NOT_FOUND", "메모를 찾을 수 없습니다.")

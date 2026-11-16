@@ -1,18 +1,20 @@
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import StockNotFoundError, TradeNotFoundError
+from app.core.exceptions import StockNotFoundError, TradeNotFoundError, NoteNotFoundError
 from app.models.stock import Stock
 from app.models.trade import Trade, TradeNote
-from app.schemas.trade import BulkTradeItem, TradeCreate
+from app.schemas.trade import BulkTradeItem, TradeCreate, NoteInput
 from datetime import date
 from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
 
+# 해당 종목을 DB에서 조회
 def _check_stock(db: Session, market: str, symbol: str) -> None:
     # 입력한 시장과 symbol이 Stock DB에 있는 지 조회
     if db.get(Stock, (market, symbol)) is None:
         raise StockNotFoundError()
 
+# 종목 1개 추가하기
 def create_trade(db: Session, user_id: int, data: TradeCreate, source: str = "MANUAL") -> Trade:
     _check_stock(db, data.market, data.symbol)
 
@@ -35,6 +37,7 @@ def create_trade(db: Session, user_id: int, data: TradeCreate, source: str = "MA
     db.refresh(trade)
     return trade
 
+# 여러 개의 종목 한번에 추가하기
 def create_bulk(db: Session, user_id: int, items: list[BulkTradeItem], source: str = "MANUAL") -> int:
     # items 리스트를 돌면서 market과 symbol 컬럼 확인
     for market, symbol in {(i.market, i.symbol) for i in items}:
@@ -57,6 +60,7 @@ def create_bulk(db: Session, user_id: int, items: list[BulkTradeItem], source: s
     db.commit()
     return len(items)
 
+# 거래 내역 리스트로 조회 api
 # * 표시는 해당 표시 뒤부터는 모든 인자가 이름을 붙여서 넘겨야 한다는 뜻 (ex : ?market='KR')
 def list_trades(
         db: Session,
@@ -108,10 +112,34 @@ def _get_my_trade(db: Session, user_id: int, trade_id: int) -> Trade:
         raise TradeNotFoundError()
     return trade
 
+# 거래 내역 상세 조회 api
 def get_trade(db: Session, user_id: int, trade_id: int) -> Trade:
     return _get_my_trade(db, user_id, trade_id)
 
+# 거래 내역 삭제 api
 def delete_trade(db: Session, user_id: int, trade_id: int) -> None:
     trade = _get_my_trade(db, user_id, trade_id)
     db.delete(trade)
+    db.commit()
+
+def upsert_note(db: Session, data: NoteInput, user_id: int, trade_id: int) -> Trade:
+    trade = _get_my_trade(db, user_id, trade_id)
+
+    if trade.note:
+        trade.note.reason = data.reason
+        trade.note.emotion = data.emotion
+    else:
+        trade.note = TradeNote(reason=data.reason, emotion=data.emotion)
+
+    db.commit()
+    db.refresh(trade)
+    return trade
+
+def delete_note(db: Session, user_id: int, trade_id: int) -> None:
+    trade = _get_my_trade(db, user_id, trade_id)
+
+    if trade.note is None:
+        raise NoteNotFoundError()
+
+    trade.note = None
     db.commit()

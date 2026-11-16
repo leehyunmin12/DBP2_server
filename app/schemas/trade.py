@@ -79,3 +79,7 @@ class BulkResponse(BaseModel):
 class TradeListResponse(BaseModel):
     total: int
     items: list[TradeResponse]
+
+class NoteInput(BaseModel):
+    reason: str = Field(min_length=1, max_length=500),
+    emotion: Emotion | None = None

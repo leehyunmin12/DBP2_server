@@ -9,7 +9,7 @@ from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models import User
 from app.schemas.trade import (
-    BulkRequest, BulkResponse, TradeCreate, TradeListResponse, TradeResponse,
+    BulkRequest, BulkResponse, TradeCreate, TradeListResponse, TradeResponse, NoteInput,
 )
 from app.services import trade as trade_service
 
@@ -59,6 +59,7 @@ def list_trades(
     )
     return {"total": total, "items": rows}
 
+# router 주소를 /:id로 받아서 id를 바로 인자값으로 받음
 @router.get("/{trade_id}", response_model=TradeResponse)
 def get_trade(
     trade_id: int,
@@ -75,3 +76,20 @@ def delete_trade(
     db: Session = Depends(get_db),
 ):
     trade_service.delete_trade(db, user.id, trade_id)
+
+@router.put("/{trade_id}/note", response_model=TradeResponse)
+def upsert_note(
+    body: NoteInput,
+    trade_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return trade_service.upsert_note(db, body, user.id, trade_id)
+
+@router.delete("/{trade_id}/note", status_code=status.HTTP_204_NO_CONTENT)
+def delete_note(
+        trade_id: int,
+        user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),
+):
+    trade_service.delete_note(db, user.id, trade_id)
