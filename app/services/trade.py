@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import StockNotFoundError
+from app.core.exceptions import StockNotFoundError, TradeNotFoundError
 from app.models.stock import Stock
 from app.models.trade import Trade, TradeNote
 from app.schemas.trade import BulkTradeItem, TradeCreate
@@ -96,3 +96,22 @@ def list_trades(
     ).all()
 
     return total, list(rows)
+
+# id와 trade_id가 같고, 본인의 거래내역을 가져와라(종목과 메모도 함께)
+def _get_my_trade(db: Session, user_id: int, trade_id: int) -> Trade:
+    trade = db.scalar(
+        select(Trade)
+        .where(Trade.id == trade_id, Trade.user_id == user_id)
+        .options(joinedload(Trade.stock), joinedload(Trade.note))
+    )
+    if trade is None:
+        raise TradeNotFoundError()
+    return trade
+
+def get_trade(db: Session, user_id: int, trade_id: int) -> Trade:
+    return _get_my_trade(db, user_id, trade_id)
+
+def delete_trade(db: Session, user_id: int, trade_id: int) -> None:
+    trade = _get_my_trade(db, user_id, trade_id)
+    db.delete(trade)
+    db.commit()

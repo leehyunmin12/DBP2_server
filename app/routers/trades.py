@@ -33,6 +33,7 @@ def create_bulk(
     return BulkResponse(saved=saved)
 
 
+# 거래 목록 가져오기
 @router.get("", response_model=TradeListResponse)
 def list_trades(
     date_from: date | None = Query(None, alias="from"),
@@ -57,3 +58,20 @@ def list_trades(
         offset=offset,
     )
     return {"total": total, "items": rows}
+
+@router.get("/{trade_id}", response_model=TradeResponse)
+def get_trade(
+    trade_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return trade_service.get_trade(db, user.id, trade_id)
+
+
+@router.delete("/{trade_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_trade(
+    trade_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    trade_service.delete_trade(db, user.id, trade_id)
