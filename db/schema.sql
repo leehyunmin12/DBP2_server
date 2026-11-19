@@ -63,6 +63,7 @@ CREATE TABLE market_prices (
 CREATE TABLE reports (
   id           BIGSERIAL    PRIMARY KEY,
   user_id      BIGINT       NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  market       market_type  NOT NULL,
   period_start DATE         NOT NULL,
   period_end   DATE         NOT NULL,
   stats_json   JSONB        NOT NULL,

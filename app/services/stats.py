@@ -53,11 +53,9 @@ def calc_realized(trades) -> dict[int, Realized]:
 def _win_rate(win_count: int, counted: int) -> float:
     return win_count / counted if counted else 0.0 # 승률, 승리 수 / 거래 수
 
-
-def build_stats(trades, realized, date_from, date_to, market) -> dict:
-    # TODO 1. 대상 SELL 고르기
+def select_sells(trades, realized, date_from, date_to, market) -> list:
+    """집계 대상 SELL 거래를 (거래, 손익) 짝으로 고른다."""
     sells = []
-
     for t in trades:
         if t.side != "SELL":
             continue
@@ -73,8 +71,13 @@ def build_stats(trades, realized, date_from, date_to, market) -> dict:
         if t.qty - r.unmatched_qty <= 0:
             continue
         sells.append((t, r))
+    return sells
 
 
+
+def build_stats(trades, realized, date_from, date_to, market) -> dict:
+    # TODO 1. 대상 SELL 고르기
+    sells = select_sells(trades, realized, date_from, date_to, market)
 
     # TODO 2. summary 계산
     pnls = [r.pnl for _, r in sells]
