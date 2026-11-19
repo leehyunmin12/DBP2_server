@@ -7,6 +7,7 @@ from app.schemas.trade import BulkTradeItem, TradeCreate, NoteInput
 from datetime import date
 from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
+from app.services.stats import calc_realized
 
 # 해당 종목을 DB에서 조회
 def _check_stock(db: Session, market: str, symbol: str) -> None:
@@ -99,6 +100,16 @@ def list_trades(
         .offset(offset)
     ).all()
 
+    realized = calc_realized(list_all_trades(db, user_id))
+
+    # 전체 행을 돌면서 각 거래에서의 손익, 비율을 추가함
+    for t in rows:
+        r = realized.get(t.id)
+        if r is not None:
+            t.pnl = r.pnl
+            t.rate = r.rate
+            t.unmatched_qty = r.unmatched_qty
+
     return total, list(rows)
 
 # id와 trade_id가 같고, 본인의 거래내역을 가져와라(종목과 메모도 함께)
@@ -114,7 +125,16 @@ def _get_my_trade(db: Session, user_id: int, trade_id: int) -> Trade:
 
 # 거래 내역 상세 조회 api
 def get_trade(db: Session, user_id: int, trade_id: int) -> Trade:
-    return _get_my_trade(db, user_id, trade_id)
+    trade = _get_my_trade(db, user_id, trade_id)
+
+    realized = calc_realized(list_all_trades(db, user_id))
+    r = realized.get(trade_id)
+    if r is not None:
+        trade.pnl = r.pnl
+        trade.rate = r.rate
+        trade.unmatched_qty = r.unmatched_qty
+
+    return trade
 
 # 거래 내역 삭제 api
 def delete_trade(db: Session, user_id: int, trade_id: int) -> None:
@@ -125,9 +145,11 @@ def delete_trade(db: Session, user_id: int, trade_id: int) -> None:
 def upsert_note(db: Session, data: NoteInput, user_id: int, trade_id: int) -> Trade:
     trade = _get_my_trade(db, user_id, trade_id)
 
+    # 이미 노트가 존재하면 그냥 수정
     if trade.note:
         trade.note.reason = data.reason
         trade.note.emotion = data.emotion
+    # 존재하지 않다면 새로운 row 만들어주기
     else:
         trade.note = TradeNote(reason=data.reason, emotion=data.emotion)
 
@@ -143,3 +165,12 @@ def delete_note(db: Session, user_id: int, trade_id: int) -> None:
 
     trade.note = None
     db.commit()
+
+def list_all_trades(db: Session, user_id: int) -> list[Trade]:
+    stmt = (
+        select(Trade)
+        .where(Trade.user_id == user_id)
+        .options(joinedload(Trade.stock), joinedload(Trade.note))
+    )
+
+    return list(db.scalars(stmt).all()) # join해서 리턴

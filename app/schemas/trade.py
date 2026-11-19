@@ -71,7 +71,9 @@ class TradeResponse(BaseModel):
     traded_time: time | None
     source: str
     note: NoteResponse | None
-
+    pnl: float | None = None
+    rate: float | None = None
+    unmatched_qty: float = 0
 
 class BulkResponse(BaseModel):
     saved: int

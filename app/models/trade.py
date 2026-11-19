@@ -30,12 +30,15 @@ class Trade(Base):
     source: Mapped[str] = mapped_column(TradeSource)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
+    # relationship()은 테이블을 합쳐 놓는 것이 아니라 나중에 joinedload를 할 때 바로 가능하도록 하는 지도이다.
+    # 그냥 Trade는 trades만 select하고 Trade.note를 호출해야 trades와 trad_notes를 select하는 것이다.
+
     # 종목 정보를 Stock 객체로 가져온다
     # trade.stock.name, trade.stock.symbol로 사용 가능
-    stock: Mapped["Stock"] = relationship()
+    stock: Mapped["Stock"] = relationship() # Trade.stock 형식으로 사용 가능
     note: Mapped["TradeNote | None"] = relationship(
         back_populates="trade", uselist=False, cascade="all, delete-orphan" # trade 속성과 연결, 매퍼 설정(configure mappers)
-    )
+    )  # Trade.note로 사용 가능
     
     @property
     def name(self) -> str:

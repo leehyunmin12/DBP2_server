@@ -24,3 +24,4 @@ def login(body: LoginRequest, request: Request, db: Session = Depends(get_db)):
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 def logout(request: Request):
     request.session.clear()
+    

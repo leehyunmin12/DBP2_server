@@ -15,6 +15,7 @@ from app.services import trade as trade_service
 
 router = APIRouter(prefix="/trades", tags=["trades"])
 
+# response_model : 답변 스키마, status_code : 반환 값
 @router.post("", response_model=TradeResponse, status_code=status.HTTP_201_CREATED)
 def create_trade(
         body: TradeCreate,
