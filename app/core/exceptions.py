@@ -30,3 +30,15 @@ class TradeNotFoundError(AppError):
 class NoteNotFoundError(AppError):
     def __init__(self) -> None:
         super().__init__(404, "NOTE_NOT_FOUND", "메모를 찾을 수 없습니다.")
+        
+class NoSellInPeriodError(AppError):
+    def __init__(self):
+        super().__init__(422, "NO_SELL_IN_PERIOD", "해당 기간에 분석할 매도 거래가 없습니다.")
+
+class ReportNotFoundError(AppError):
+    def __init__(self):
+        super().__init__(404, "REPORT_NOT_FOUND", "리포트를 찾을 수 없습니다.")
+
+class AIUnavailableError(AppError):
+    def __init__(self):
+        super().__init__(502, "AI_UNAVAILABLE", "AI 요약을 만들 수 없습니다. 잠시 후 다시 시도해 주세요.")
