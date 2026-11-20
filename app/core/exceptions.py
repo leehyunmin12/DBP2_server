@@ -42,3 +42,7 @@ class ReportNotFoundError(AppError):
 class AIUnavailableError(AppError):
     def __init__(self):
         super().__init__(502, "AI_UNAVAILABLE", "AI 요약을 만들 수 없습니다. 잠시 후 다시 시도해 주세요.")
+
+class InvalidImageError(AppError):
+    def __init__(self):
+        super().__init__(422, "INVALID_IMAGE", "PNG, JPEG, WEBP 형식의 5MB 이하 이미지만 올릴 수 있습니다.")

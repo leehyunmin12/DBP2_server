@@ -12,8 +12,37 @@ from app.schemas.trade import (
     BulkRequest, BulkResponse, TradeCreate, TradeListResponse, TradeResponse, NoteInput,
 )
 from app.services import trade as trade_service
+from fastapi import File, UploadFile
+from app.core.exceptions import AIUnavailableError, InvalidImageError
+from app.schemas.capture import CaptureResponse
+from app.services import capture as capture_service
+from app.services.ai import AIError
 
 router = APIRouter(prefix="/trades", tags=["trades"])
+
+ALLOWED_IMAGE_TYPES = {"image/png", "image/jpeg", "image/webp"}
+MAX_IMAGE_BYTES = 5 * 1024 * 1024
+
+@router.post("/capture", response_model=CaptureResponse)
+def capture_trades(
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if file.content_type not in ALLOWED_IMAGE_TYPES:
+        raise InvalidImageError()
+
+    image = file.file.read()
+    if len(image) > MAX_IMAGE_BYTES:
+        raise InvalidImageError()
+
+    try:
+        candidates = capture_service.recognize(db, image, file.content_type)
+    except AIError as e:
+        raise AIUnavailableError() from e
+
+    return CaptureResponse(candidates=candidates)
+
 
 # response_model : 답변 스키마, status_code : 반환 값
 @router.post("", response_model=TradeResponse, status_code=status.HTTP_201_CREATED)
