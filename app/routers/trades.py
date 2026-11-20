@@ -14,7 +14,7 @@ from app.schemas.trade import (
 from app.services import trade as trade_service
 from fastapi import File, UploadFile
 from app.core.exceptions import AIUnavailableError, InvalidImageError
-from app.schemas.capture import CaptureResponse
+from app.schemas.capture import CaptureResponse, CaptureConfirm
 from app.services import capture as capture_service
 from app.services.ai import AIError
 
@@ -123,3 +123,12 @@ def delete_note(
         db: Session = Depends(get_db),
 ):
     trade_service.delete_note(db, user.id, trade_id)
+
+@router.post("/capture/confirm", response_model=BulkResponse, status_code=status.HTTP_201_CREATED)
+def confirm_capture(
+    body: CaptureConfirm,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    saved = trade_service.create_many(db, user.id, body.items)
+    return BulkResponse(saved=saved)

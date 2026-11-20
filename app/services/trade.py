@@ -61,6 +61,35 @@ def create_bulk(db: Session, user_id: int, items: list[BulkTradeItem], source: s
     db.commit()
     return len(items)
 
+def create_many(
+    db: Session, user_id: int, items: list[TradeCreate], source: str = "CAPTURE"
+) -> int:
+    # 1. 종목이 전부 존재하는지 먼저 확인 (하나라도 없으면 아무것도 저장하지 않음)
+    for market, symbol in {(i.market, i.symbol) for i in items}:
+        _check_stock(db, market, symbol)
+
+    # 2. 거래 객체를 만들어서 쌓기
+    for item in items:
+        trade = Trade(
+            user_id=user_id,
+            market=item.market,
+            symbol=item.symbol,
+            side=item.side,
+            qty=item.qty,
+            price=item.price,
+            traded_on=item.traded_on,
+            traded_time=item.traded_time,
+            source=source,
+        )
+        if item.note:
+            trade.note = TradeNote(reason=item.note.reason, emotion=item.note.emotion)
+        db.add(trade)
+
+    # 3. 마지막에 한 번만 저장
+    db.commit()
+    return len(items)
+
+
 # 거래 내역 리스트로 조회 api
 # * 표시는 해당 표시 뒤부터는 모든 인자가 이름을 붙여서 넘겨야 한다는 뜻 (ex : ?market='KR')
 def list_trades(

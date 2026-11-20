@@ -2,6 +2,8 @@ from datetime import date, time
 from typing import Literal
 from pydantic import BaseModel
 from decimal import Decimal
+from pydantic import Field
+from app.schemas.trade import TradeCreate
 
 class CaptureCandidate(BaseModel):
     name: str                          # AI가 읽은 종목명
@@ -28,3 +30,6 @@ class RawRow(BaseModel):
 class RawCapture(BaseModel):
     stock_name: str
     rows: list[RawRow]
+
+class CaptureConfirm(BaseModel):
+    items: list[TradeCreate] = Field(min_length=1, max_length=100)
