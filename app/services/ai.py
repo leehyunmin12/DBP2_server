@@ -2,6 +2,8 @@ from google import genai
 from google.genai import types
 
 from app.core.config import settings
+from pydantic import BaseModel
+
 
 
 class AIError(Exception):
@@ -38,3 +40,33 @@ def generate_summary(system_instruction: str, content: str) -> str:
     if not text:
         raise AIError("AI가 빈 응답을 돌려줬습니다.")
     return text
+
+def generate_from_image(
+    system_instruction: str,
+    prompt: str,
+    image: bytes,
+    mime_type: str,
+    schema: type[BaseModel],
+) -> BaseModel:
+    try:
+        response = _get_client().models.generate_content(
+            model=settings.gemini_model,
+            contents=[
+                types.Part.from_bytes(data=image, mime_type=mime_type),
+                prompt,
+            ],
+            config=types.GenerateContentConfig(
+                system_instruction=system_instruction,
+                response_mime_type="application/json",
+                response_schema=schema,
+            ),
+        )
+    except AIError:
+        raise
+    except Exception as e:
+        raise AIError("AI 이미지 인식에 실패했습니다.") from e
+
+    result = response.parsed
+    if result is None:
+        raise AIError("AI가 형식에 맞는 응답을 돌려주지 않았습니다.")
+    return result
