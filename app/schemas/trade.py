@@ -1,4 +1,4 @@
-from datetime import date, time, timedelta
+from datetime import date, time
 from decimal import Decimal
 from typing import Literal
 
@@ -10,8 +10,7 @@ Emotion = Literal["CONFIDENT", "ANXIOUS", "IMPULSIVE", "GREEDY", "FEARFUL", "NEU
 
 
 def _check_not_future(d: date) -> date:
-    # 서버 시간대가 한국보다 느릴 수 있어서 하루 여유를 둔다.
-    if d > date.today() + timedelta(days=1):
+    if d > date.today():
         raise ValueError("오늘 이후 날짜의 거래는 입력할 수 없습니다.")
     return d
 
