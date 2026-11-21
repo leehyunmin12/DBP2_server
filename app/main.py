@@ -37,12 +37,12 @@ for module in (auth, users, stocks, trades, reports, sample, stats):
     app.include_router(module.router)
 
 # health API, 서버가 살아있는 지 확인
-@app.get(f"health", tags=["health"])
+@app.get("/health", tags=["health"])
 def health():
     return {"status": "ok"}
 
 # DB 연결 확인
-@app.get(f"/health/db", tags=["health"])
+@app.get("/health/db", tags=["health"])
 def health_db(db: Session = Depends(get_db)):
     db.execute(text("SELECT 1"))
     return {"status": "ok", "db": "connected"}

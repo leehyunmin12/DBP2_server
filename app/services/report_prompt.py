@@ -23,6 +23,7 @@ SYSTEM_INSTRUCTION = """\
 - 건수가 적다는 단서는 글 전체에서 한 번만, '아쉬운 점'의 맨 앞에 쓴다.
 - 이익이 난 거래라도 메모나 감정이 욕심, 충동, 불안 같은 습관 문제를 보여 주면 '잘한 점'에 쓰지 않는다. '아쉬운 점'에서 "이익이었지만 습관은 점검이 필요하다"는 식으로 다룬다.
 - 메모에 없는 사실(예: 사전에 정한 기준, 계획)을 단정하지 않는다. 메모에 적힌 표현만 근거로 쓴다.
+- [매수 기록]이 있으면 매수 때 감정 분포와 매도 결과를 연결해 볼 수 있다. 다만 감정별 매수 건수는 매도 손익과 직접 짝지어진 것이 아니므로 인과를 단정하지 않고, 주어진 숫자 밖의 사실은 만들지 않는다.
 
 출력 형식 (제목 그대로 사용):
 ## 한 줄 총평
@@ -86,6 +87,12 @@ def build_prompt(market, date_from, date_to, stats: dict, highlights: list[dict]
     lines += ["", "[종목별 결과]"]
     for st in stats["by_stock"]:
         lines.append(f"- {st['name']}: 매도 {st['sell_count']}건, 손익 {_money(st['pnl'], market)}")
+
+    buy = stats.get("buy_summary")
+    if buy and buy["buy_count"]:
+        lines += ["", "[매수 기록]", f"- 매수 {buy['buy_count']}건, 총 매수금액 {float(buy['buy_amount']):,.0f}{CURRENCY[market]}"]
+        for e in buy["by_emotion"]:
+            lines.append(f"- 매수 때 감정 {EMOTION_KO.get(e['emotion'], e['emotion'])}: {e['buy_count']}건")
 
     lines += ["", "[대표 거래 (손실 큰 순, 이익 큰 순)]"]
     for h in highlights:

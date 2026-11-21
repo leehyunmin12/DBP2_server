@@ -3,8 +3,6 @@ from dataclasses import dataclass
 from datetime import time
 from decimal import Decimal
 
-from matplotlib.pyplot import hsv
-
 from app.models import Stock
 
 
@@ -75,6 +73,35 @@ def select_sells(trades, realized, date_from, date_to, market) -> list:
 
 
 
+def select_buys(trades, date_from, date_to, market) -> list:
+    """기간·시장에 맞는 BUY 거래를 고른다."""
+    buys = []
+    for t in trades:
+        if t.side != "BUY":
+            continue
+        if date_from and t.traded_on < date_from:
+            continue
+        if date_to and t.traded_on > date_to:
+            continue
+        if market and t.market != market:
+            continue
+        buys.append(t)
+    return buys
+
+
+def build_buy_summary(buys) -> dict:
+    """매수 건수, 총 매수금액, 매수 때 감정별 건수."""
+    emotion_count = defaultdict(int)
+    for t in buys:
+        emotion = t.note.emotion if t.note and t.note.emotion else "NONE"
+        emotion_count[emotion] += 1
+    return {
+        "buy_count": len(buys),
+        "buy_amount": float(sum((t.price * t.qty for t in buys), Decimal("0"))),
+        "by_emotion": [{"emotion": e, "buy_count": n} for e, n in emotion_count.items()],
+    }
+
+
 def build_stats(trades, realized, date_from, date_to, market) -> dict:
     # TODO 1. 대상 SELL 고르기
     sells = select_sells(trades, realized, date_from, date_to, market)
@@ -135,4 +162,5 @@ def build_stats(trades, realized, date_from, date_to, market) -> dict:
         "by_stock": by_stock,
         "by_emotion": by_emotion,
         "has_unmatched": has_unmatched,
+        "buy_summary": build_buy_summary(select_buys(trades, date_from, date_to, market)),
     }

@@ -26,8 +26,20 @@ class EmotionStat(BaseModel):
     win_rate: float
 
 
+class BuyEmotionStat(BaseModel):
+    emotion: str         # 감정이 없으면 "NONE"
+    buy_count: int
+
+
+class BuySummary(BaseModel):
+    buy_count: int
+    buy_amount: float    # 총 매수금액 (단가 x 수량)
+    by_emotion: list[BuyEmotionStat]
+
+
 class StatsResponse(BaseModel):
     summary: StatsSummary
     by_stock: list[StockStat]
     by_emotion: list[EmotionStat]
     has_unmatched: bool  # 보유보다 많이 판 거래가 있는지
+    buy_summary: BuySummary
