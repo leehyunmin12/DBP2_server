@@ -1,12 +1,19 @@
-from datetime import date, time
+from datetime import date, time, timedelta
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 Market = Literal["KR", "US"]
 Side = Literal["BUY", "SELL"]
 Emotion = Literal["CONFIDENT", "ANXIOUS", "IMPULSIVE", "GREEDY", "FEARFUL", "NEUTRAL"]
+
+
+def _check_not_future(d: date) -> date:
+    # 서버 시간대가 한국보다 느릴 수 있어서 하루 여유를 둔다.
+    if d > date.today() + timedelta(days=1):
+        raise ValueError("오늘 이후 날짜의 거래는 입력할 수 없습니다.")
+    return d
 
 
 # ---------- 요청 ----------
@@ -25,6 +32,11 @@ class TradeCreate(BaseModel):
     traded_time: time | None = None # 생략 가능
     note: NoteInput | None = None
 
+    @field_validator("traded_on")
+    @classmethod
+    def check_traded_on(cls, v: date) -> date:
+        return _check_not_future(v)
+
 
 class BulkTradeItem(BaseModel):
     market: Market
@@ -35,6 +47,11 @@ class BulkTradeItem(BaseModel):
     buy_date: date
     sell_date: date
     note: NoteInput | None = None
+
+    @field_validator("buy_date", "sell_date")
+    @classmethod
+    def check_not_future(cls, v: date) -> date:
+        return _check_not_future(v)
 
     # 각 필드의 타입 검증이 모두 끝난 후, 여러 필드를 비교하는 검증
     @model_validator(mode="after")
