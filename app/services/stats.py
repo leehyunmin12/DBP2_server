@@ -1,6 +1,5 @@
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import time
 from decimal import Decimal
 
 from app.models import Stock
@@ -23,7 +22,7 @@ def calc_realized(trades) -> dict[int, Realized]:
 
     for group in groups.values(): # 종목 하나의 전체 거래씩 실행
         # 오래된 거래 순으로 정렬 처리
-        group.sort(key=lambda t: (t.traded_on, t.traded_time or time.min, t.id))
+        group.sort(key=lambda t: (t.traded_on, t.id))
 
         qty = Decimal("0")
         avg = Decimal("0")

@@ -10,7 +10,7 @@ from starlette.responses import JSONResponse
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.exceptions import AppError
-from app.routers import auth, reports, sample, stocks, trades, users, stats
+from app.routers import auth, reports, stocks, trades, users, stats
 app = FastAPI(title="매매 일지 + AI 복기 API", version="0.1.0")
 
 # 세션 쿠키 (서명된 쿠키 세션). CORS가 가장 바깥에 오도록 나중에 추가한다.
@@ -33,7 +33,7 @@ app.add_middleware(
 )
 
 # 각 파일의 라우터를 앱에 연결시킴 (prefix 설정으로 주소 앞 고정)
-for module in (auth, users, stocks, trades, reports, sample, stats):
+for module in (auth, users, stocks, trades, reports, stats):
     app.include_router(module.router)
 
 # health API, 서버가 살아있는 지 확인

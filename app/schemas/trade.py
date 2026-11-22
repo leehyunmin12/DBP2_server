@@ -1,4 +1,4 @@
-from datetime import date, time
+from datetime import date
 from decimal import Decimal
 from typing import Literal
 
@@ -28,7 +28,6 @@ class TradeCreate(BaseModel):
     qty: Decimal = Field(gt=0, max_digits=18, decimal_places=4)
     price: Decimal = Field(gt=0, max_digits=18, decimal_places=4)
     traded_on: date
-    traded_time: time | None = None # 생략 가능
     note: NoteInput | None = None
 
     @field_validator("traded_on")
@@ -84,7 +83,6 @@ class TradeResponse(BaseModel):
     qty: float
     price: float
     traded_on: date
-    traded_time: time | None
     source: str
     note: NoteResponse | None
     pnl: float | None = None

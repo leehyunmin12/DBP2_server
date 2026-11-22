@@ -27,7 +27,6 @@ def create_trade(db: Session, user_id: int, data: TradeCreate, source: str = "MA
         qty=data.qty,
         price=data.price,
         traded_on=data.traded_on,
-        traded_time=data.traded_time,
         source=source,
     )
     if data.note:
@@ -78,7 +77,6 @@ def create_many(
             qty=item.qty,
             price=item.price,
             traded_on=item.traded_on,
-            traded_time=item.traded_time,
             source=source,
         )
         if item.note:

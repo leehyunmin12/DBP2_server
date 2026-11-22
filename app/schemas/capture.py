@@ -1,4 +1,4 @@
-from datetime import date, time
+from datetime import date
 from typing import Literal
 from pydantic import BaseModel
 from decimal import Decimal
@@ -11,7 +11,6 @@ class CaptureCandidate(BaseModel):
     qty: Decimal
     price: Decimal
     traded_on: date | None = None
-    traded_time: time | None = None
     # 서버가 stocks에서 찾아서 채움 (못 찾으면 None)
     symbol: str | None = None
     market: Literal["KR", "US"] | None = None

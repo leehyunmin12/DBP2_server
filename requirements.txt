@@ -6,8 +6,5 @@ pydantic-settings
 itsdangerous
 python-multipart
 bcrypt
-pandas
-pykrx
-yfinance
 google-genai
 email-validator

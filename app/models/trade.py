@@ -1,9 +1,9 @@
-from datetime import date, datetime, time
+from datetime import date
 from decimal import Decimal
 
 from sqlalchemy import (
-    BigInteger, Date, DateTime, ForeignKey, ForeignKeyConstraint,
-    Numeric, String, Text, Time, func,
+    BigInteger, Date, ForeignKey, ForeignKeyConstraint,
+    Numeric, String, Text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -26,9 +26,7 @@ class Trade(Base):
     qty: Mapped[Decimal] = mapped_column(Numeric(18, 4))
     price: Mapped[Decimal] = mapped_column(Numeric(18, 4))
     traded_on: Mapped[date] = mapped_column(Date)
-    traded_time: Mapped[time | None] = mapped_column(Time)
     source: Mapped[str] = mapped_column(TradeSource)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     # relationship()은 테이블을 합쳐 놓는 것이 아니라 나중에 joinedload를 할 때 바로 가능하도록 하는 지도이다.
     # 그냥 Trade는 trades만 select하고 Trade.note를 호출해야 trades와 trad_notes를 select하는 것이다.
@@ -54,6 +52,5 @@ class TradeNote(Base):
     )
     reason: Mapped[str] = mapped_column(Text)
     emotion: Mapped[str | None] = mapped_column(EmotionType)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     trade: Mapped["Trade"] = relationship(back_populates="note") # note 속성과 연결
