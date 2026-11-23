@@ -54,7 +54,6 @@ CREATE TABLE reports (
   market       market_type  NOT NULL,
   period_start DATE         NOT NULL,
   period_end   DATE         NOT NULL,
-  stats_json   JSONB        NOT NULL,
   summary      TEXT,
   created_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
   CHECK (period_end >= period_start)
@@ -242,8 +241,8 @@ INSERT INTO trade_notes (id, trade_id, reason, emotion) VALUES
   (13, 18, '손실이 커질까 불안해서 매도', 'ANXIOUS');
 
 -- 복기 리포트 (id=2는 AI 요약이 없는 경우: summary NULL)
-INSERT INTO reports (id, user_id, market, period_start, period_end, stats_json, summary, created_at) VALUES
-  (1, 1, 'KR', '2026-08-01', '2026-11-22', '{"summary": {"avg_loss": -90000.0, "win_rate": 0.6666666666666666, "total_pnl": 6000.0, "win_count": 4, "avg_profit": 46500.0, "loss_count": 2, "sell_count": 6}, "by_stock": [{"pnl": 45000.0, "name": "삼성전자", "market": "KR", "symbol": "005930", "sell_count": 1}, {"pnl": 75000.0, "name": "SK하이닉스", "market": "KR", "symbol": "000660", "sell_count": 1}, {"pnl": 40000.0, "name": "현대차", "market": "KR", "symbol": "005380", "sell_count": 1}, {"pnl": -90000.0, "name": "NAVER", "market": "KR", "symbol": "035420", "sell_count": 1}, {"pnl": -90000.0, "name": "카카오", "market": "KR", "symbol": "035720", "sell_count": 1}, {"pnl": 26000.0, "name": "두산에너빌리티", "market": "KR", "symbol": "034020", "sell_count": 1}], "by_emotion": [{"pnl": 45000.0, "emotion": "CONFIDENT", "win_rate": 1.0, "sell_count": 1}, {"pnl": 75000.0, "emotion": "GREEDY", "win_rate": 1.0, "sell_count": 1}, {"pnl": 66000.0, "emotion": "NONE", "win_rate": 1.0, "sell_count": 2}, {"pnl": -90000.0, "emotion": "IMPULSIVE", "win_rate": 0.0, "sell_count": 1}, {"pnl": -90000.0, "emotion": "FEARFUL", "win_rate": 0.0, "sell_count": 1}], "highlights": [{"pnl": -90000.0, "date": "2026-10-28", "name": "NAVER", "rate": -0.07142857142857142, "reason": "손실이 커져 급하게 손절", "emotion": "IMPULSIVE"}, {"pnl": -90000.0, "date": "2026-10-30", "name": "카카오", "rate": -0.09, "reason": "더 떨어질까 무서워 매도", "emotion": "FEARFUL"}, {"pnl": 75000.0, "date": "2026-09-05", "name": "SK하이닉스", "rate": 0.08333333333333333, "reason": "더 오를 것 같아 욕심내다 늦게 매도", "emotion": "GREEDY"}, {"pnl": 45000.0, "date": "2026-08-20", "name": "삼성전자", "rate": 0.0661764705882353, "reason": "목표가에 도달해 매도", "emotion": "CONFIDENT"}, {"pnl": 40000.0, "date": "2026-10-22", "name": "현대차", "rate": 0.041666666666666664, "reason": null, "emotion": "NONE"}], "buy_summary": {"buy_count": 8, "buy_amount": 5413000.0, "by_emotion": [{"emotion": "NEUTRAL", "buy_count": 2}, {"emotion": "CONFIDENT", "buy_count": 1}, {"emotion": "GREEDY", "buy_count": 1}, {"emotion": "IMPULSIVE", "buy_count": 1}, {"emotion": "ANXIOUS", "buy_count": 1}, {"emotion": "NONE", "buy_count": 2}]}, "has_unmatched": false}', '## 한 줄 총평
+INSERT INTO reports (id, user_id, market, period_start, period_end, summary, created_at) VALUES
+  (1, 1, 'KR', '2026-08-01', '2026-11-22', '## 한 줄 총평
 총 실현손익은 +6,000원이며, 승률은 67%(매도 6건 중 이익 4건, 손실 2건)입니다.
 
 ## 잘한 점
@@ -261,7 +260,7 @@ INSERT INTO reports (id, user_id, market, period_start, period_end, stats_json, 
 - 손실이 났을 때 정해 둔 기준으로 판단했는가?
 - 이익이 났을 때 목표가를 미리 정해 두었는가?
 ', '2026-11-22 13:50:43+00'),
-  (2, 1, 'US', '2026-09-01', '2026-11-22', '{"summary": {"avg_loss": -47.0, "win_rate": 0.5, "total_pnl": -11.75, "win_count": 1, "avg_profit": 35.25, "loss_count": 1, "sell_count": 2}, "by_stock": [{"pnl": 35.25, "name": "애플", "market": "US", "symbol": "AAPL", "sell_count": 1}, {"pnl": -47.0, "name": "테슬라", "market": "US", "symbol": "TSLA", "sell_count": 1}], "by_emotion": [{"pnl": 35.25, "emotion": "IMPULSIVE", "win_rate": 1.0, "sell_count": 1}, {"pnl": -47.0, "emotion": "ANXIOUS", "win_rate": 0.0, "sell_count": 1}], "highlights": [{"pnl": -47.0, "date": "2026-11-03", "name": "테슬라", "rate": -0.09591836734693877, "reason": "손실이 커질까 불안해서 매도", "emotion": "ANXIOUS"}, {"pnl": 35.25, "date": "2026-10-02", "name": "애플", "rate": 0.06200527704485488, "reason": "지인 추천 받고 급해서 매도", "emotion": "IMPULSIVE"}], "buy_summary": {"buy_count": 2, "buy_amount": 1058.5, "by_emotion": [{"emotion": "NONE", "buy_count": 1}, {"emotion": "GREEDY", "buy_count": 1}]}, "has_unmatched": false}', NULL, '2026-11-22 13:50:43+00');
+  (2, 1, 'US', '2026-09-01', '2026-11-22', NULL, '2026-11-22 13:50:43+00');
 
 -- id 자동 증가 값을 맞춰 둔다
 SELECT setval('users_id_seq',       (SELECT MAX(id) FROM users));

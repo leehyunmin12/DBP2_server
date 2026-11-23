@@ -34,6 +34,25 @@ def _make_summary(market, date_from, date_to, stats: dict) -> str:
     return generate_summary(system, user)
 
 
+def _build_report_stats(trades, realized, market, date_from, date_to) -> dict:
+    # 리포트 통계는 저장하지 않고, 보여줄 때마다 거래에서 계산한다 (3NF: 파생 데이터 중복 저장 제거)
+    stats = build_stats(trades, realized, date_from, date_to, market)
+    sells = select_sells(trades, realized, date_from, date_to, market)
+    stats["highlights"] = _serialize_highlights(pick_highlights(sells))
+    return stats
+
+
+def _with_stats(db: Session, user_id: int, reports: list[Report]) -> list[Report]:
+    # 거래는 한 번만 읽고, 리포트마다 통계를 계산해 report.stats 에 붙인다
+    trades = trade_service.list_all_trades(db, user_id)
+    realized = calc_realized(trades)
+    for report in reports:
+        report.stats = _build_report_stats(
+            trades, realized, report.market, report.period_start, report.period_end
+        )
+    return reports
+
+
 def create_report(db: Session, user_id: int, data: ReportCreate) -> Report:
     # TODO 1. 내 거래 전부 가져와서 calc_realized
     trades = trade_service.list_all_trades(db, user_id)
@@ -44,9 +63,8 @@ def create_report(db: Session, user_id: int, data: ReportCreate) -> Report:
     if not sells:
         raise NoSellInPeriodError()
 
-    # TODO 3. build_stats로 통계, pick_highlights + _serialize_highlights로 대표 거래
-    stats = build_stats(trades, realized, data.date_from, data.date_to, data.market)
-    stats["highlights"] = _serialize_highlights(pick_highlights(sells))
+    # TODO 3. 통계 + 대표 거래 계산 (DB에는 저장하지 않고 AI 요약 입력으로만 쓴다)
+    stats = _build_report_stats(trades, realized, data.market, data.date_from, data.date_to)
 
     # TODO 4. _make_summary로 요약 만들기 (실패하면 None)
     try:
@@ -60,12 +78,12 @@ def create_report(db: Session, user_id: int, data: ReportCreate) -> Report:
         market = data.market,
         period_start = data.date_from,
         period_end = data.date_to,
-        stats_json = stats,
         summary = summary,
     )
     db.add(report)
     db.commit()
     db.refresh(report)
+    report.stats = stats
     return report
 
 
@@ -78,15 +96,18 @@ def _get_my_report(db: Session, user_id: int, report_id: int) -> Report:
     return report
 
 def get_report(db: Session, user_id: int, report_id: int) -> Report:
-    return _get_my_report(db, user_id, report_id)
+    report = _get_my_report(db, user_id, report_id)
+    _with_stats(db, user_id, [report])
+    return report
 
 
 def list_reports(db: Session, user_id: int) -> list[Report]:
-    return list(db.scalars(
+    reports = list(db.scalars(
         select(Report)
         .where(Report.user_id == user_id)
         .order_by(Report.created_at.desc(), Report.id.desc())
     ).all())
+    return _with_stats(db, user_id, reports)
 
 
 def delete_report(db: Session, user_id: int, report_id: int) -> None:
@@ -102,7 +123,7 @@ def retry_summary(db: Session, user_id: int, report_id: int) -> Report:
             report.market,
             report.period_start,
             report.period_end,
-            report.stats_json,
+            report.stats,
         )
     except AIError as e:
         raise AIUnavailableError() from e

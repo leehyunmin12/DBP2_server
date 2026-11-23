@@ -27,7 +27,7 @@ class ReportResponse(BaseModel):
     market: str
     period_start: date
     period_end: date
-    stats: dict[str, Any] = Field(validation_alias="stats_json")
+    stats: dict[str, Any]
     summary: str | None
     created_at: datetime
     disclaimer: str = DISCLAIMER
