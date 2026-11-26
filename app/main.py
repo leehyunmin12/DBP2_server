@@ -23,7 +23,7 @@ app.add_middleware(
     max_age=60 * 60 * 24 * 7,
 )
 
-# CORS 설정 (다른 웹사이트에서 보내는 요청을 허용)
+# CORS 설정  (다른 웹사이트에서 보내는 요청을 허용)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
