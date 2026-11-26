@@ -37,7 +37,8 @@ class Trade(Base):
     note: Mapped["TradeNote | None"] = relationship(
         back_populates="trade", uselist=False, cascade="all, delete-orphan" # trade 속성과 연결, 매퍼 설정(configure mappers)
     )  # Trade.note로 사용 가능
-    
+
+    # trade.stock.name -> trade.name
     @property
     def name(self) -> str:
         return self.stock.name
